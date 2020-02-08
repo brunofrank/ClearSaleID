@@ -40,7 +40,7 @@ module Clearsale
 
       builder.tag!('Itens') do |b|
         order.order_items.each do |order_item|
-          build_item(b, order_item)
+          build_item(b, Object.new(order_item))
         end
       end
     end
@@ -53,7 +53,7 @@ module Clearsale
       builder.tag!('Email', user.email)
       builder.tag!('Sexo', user.gender.downcase)
       builder.tag!('Nascimento', user.birthdate.to_time.strftime("%Y-%m-%dT%H:%M:%S")) if user.birthdate.present?
-      build_address(builder, billing_address)
+      build_address(builder, Object.new(billing_address))
       builder.tag!('Telefones') do |b|
         build_phone(b, user)
       end
@@ -115,20 +115,23 @@ module Clearsale
         b.tag!('TipoCartao', CARD_TYPE_MAP.fetch(payment.acquirer.to_sym, 4)) # Failover is 'outros'
         b.tag!('DataValidadeCartao', payment.card_expiration)
         b.tag!('NomeTitularCartao', payment.customer_name)
-        b.tag!('DocumentoLegal1', user.cpf.gsub(/[\.\-]*/, '').strip)
+        b.tag!('DocumentoLegal1', payment.cpf.gsub(/\D+/, '')) if payment.cpf
 
-        build_collection_address(b, order.billing_address)
+        build_collection_address(b, Object.new(order.billing_address))
       end
     end
 
     def self.build_item(builder, order_item)
       builder.tag!('Item') do |b|
-        b.tag!('CodigoItem', order_item.product.product_id)
-        b.tag!('NomeItem', order_item.product.name)
+        product = Object.new(order_item.product)
+        category = Object.new(product.category)
+
+        b.tag!('CodigoItem', product.product_id)
+        b.tag!('NomeItem', product.name)
         b.tag!('ValorItem', order_item.price)
         b.tag!('Quantidade', order_item.quantity)
-        b.tag!('CodigoCategoria', order_item.product.category.category_id) if order_item.product.category.try(:category_id).present?
-        b.tag!('NomeCategoria', order_item.product.category.name) if order_item.product.category.try(:name).present?
+        b.tag!('CodigoCategoria', category.category_id) if category.try(:category_id).present?
+        b.tag!('NomeCategoria', category.name) if category.try(:name).present?
       end
     end
   end

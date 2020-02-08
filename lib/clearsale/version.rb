@@ -1,3 +1,3 @@
 module Clearsale
-  VERSION = "1.0.5"
+  VERSION = "1.4.1"
 end

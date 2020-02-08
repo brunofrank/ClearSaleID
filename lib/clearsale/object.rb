@@ -10,11 +10,11 @@ module Clearsale
             v = @table[name]
             case v
               when Hash
-                Object.new(v)
+                return Object.new(v)
               when Array
-                v.each_with_index { |item, index| v[index] = Object.new(item) }
+                return v.each_with_index { |item, index| v[index] = Object.new(item) }
               else
-                v
+                return v
               end
           }
           define_method("#{name}=") { |x| modifiable[name] = x }
